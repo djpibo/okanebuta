@@ -4,8 +4,8 @@ from fastapi import Depends
 from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 
-from connection import get_db
-from orm import ToDo
+from database.connection import get_db
+from database.orm import ToDo
 
 
 class ToDoRepository:

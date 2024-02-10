@@ -1,6 +1,6 @@
 # test_ : method convention to recognize for pytest
-from orm import ToDo
-from repository import ToDoRepository
+from database.orm import ToDo
+from database.repository import ToDoRepository
 
 
 def test_health_check_handler(client):

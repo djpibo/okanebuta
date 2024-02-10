@@ -1,9 +1,9 @@
 from fastapi import Body, HTTPException, Depends, APIRouter
 from pydantic import BaseModel
-from orm import ToDo
-from repository import ToDoRepository
-from request import CreateToDoRequest
-from response import CreateToDoResponse
+from database.orm import ToDo
+from database.repository import ToDoRepository
+from schema.request import CreateToDoRequest
+from schema.response import CreateToDoResponse
 
 router = APIRouter(prefix="/todos")
 

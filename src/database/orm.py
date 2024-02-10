@@ -1,7 +1,7 @@
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import Boolean, Column, Integer, String
 
-from request import CreateToDoRequest
+from schema.request import CreateToDoRequest
 
 Base = declarative_base()
 
