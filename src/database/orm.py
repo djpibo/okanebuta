@@ -1,5 +1,5 @@
-from sqlalchemy.orm import declarative_base
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 
 from schema.request import CreateToDoRequest
 
@@ -12,7 +12,9 @@ class ToDo(Base):
     id = Column(Integer, primary_key=True, index=True)
     contents = Column(String(256), nullable=False)
     is_done = Column(Boolean, nullable=False)
+    user_id = Column(Integer, ForeignKey("user"))
 
+    # use for clean express
     def __repr__(self):
         return f"ToDo(id={self.id}, contents={self.contents}, is_done={self.is_done}"
 
@@ -23,11 +25,22 @@ class ToDo(Base):
             is_done=request.is_done,
         )
 
-    # done 메소드를 여러 군데서 반복해서 사용한다면 따로 메소드를 빼놓는 것이 효율적
+    # being more efficiently when having used same method at many points
     def done(self) -> "ToDo":
-        self.is_done = False
+        self.is_done = True
         return self
 
     def undone(self) -> "ToDo":
-        self.is_done = True
+        self.is_done = False
         return self
+
+
+class User(Base):
+    __tablename__ = "user"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(256), nullable=False)
+    password = Column(String(256), nullable=False)
+    todos = relationship("ToDo", lazy="joined")  # using orm, fetch with argument table when fetching table "user"
+
+    # lazy="joined" is eager loading, to activate lazy loading use lazy="select", but it might occur 1+N problem

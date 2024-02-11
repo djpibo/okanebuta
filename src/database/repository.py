@@ -9,18 +9,18 @@ from database.orm import ToDo
 
 
 class ToDoRepository:
-    def __init__(self, session: Session = Depends(get_db)):
+    def __init__(self, session: Session = Depends(get_db)):  # constructor DI (Session)
         self.session = session
 
-    # 다건 조회
+    # multiple fetch
     def get_todos(self) -> List[ToDo]:
         return list(self.session.scalars(select(ToDo)))
 
-    # 단일 조회
-    def get_todo_by_todo_id(self, todo_id: int) -> ToDo | None:
+    # single fetch
+    def get_todo_by_todo_id(self, todo_id: int) -> ToDo | None:  # return nullable object
         return self.session.scalar(select(ToDo).where(ToDo.id == todo_id))
 
-    # JPA Entity 유사
+    # Like JPA Entity, don't need to use insert query
     def create_todo(self, todo: ToDo) -> ToDo:
         self.session.add(instance=todo)
         self.session.commit()  # db insert
