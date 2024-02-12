@@ -12,7 +12,7 @@ class ToDo(Base):
     id = Column(Integer, primary_key=True, index=True)
     contents = Column(String(256), nullable=False)
     is_done = Column(Boolean, nullable=False)
-    user_id = Column(Integer, ForeignKey("user"))
+    user_id = Column(Integer, ForeignKey("user.id"))
 
     # use for clean express
     def __repr__(self):
@@ -41,6 +41,14 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(256), nullable=False)
     password = Column(String(256), nullable=False)
-    todos = relationship("ToDo", lazy="joined")  # using orm, fetch with argument table when fetching table "user"
-
+    todos = relationship("ToDo", lazy="joined")
+    # using orm, fetch with argument table when fetching table "user"
+    # those clause uses eager loading with left outer join (left side is table "user")
     # lazy="joined" is eager loading, to activate lazy loading use lazy="select", but it might occur 1+N problem
+
+    @classmethod
+    def create(cls, username: str, hashed_password: str) -> "User":
+        return cls(
+            username=username,
+            password=hashed_password
+        )
