@@ -12,7 +12,7 @@ class ToDo(Base):
     id = Column(Integer, primary_key=True, index=True)
     contents = Column(String(256), nullable=False)
     is_done = Column(Boolean, nullable=False)
-    user_id = Column(Integer, ForeignKey("user.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
 
     # use for clean express
     def __repr__(self):
@@ -23,6 +23,7 @@ class ToDo(Base):
         return cls(
             contents=request.contents,
             is_done=request.is_done,
+            user_id=request.user_id
         )
 
     # being more efficiently when having used same method at many points
@@ -36,7 +37,7 @@ class ToDo(Base):
 
 
 class User(Base):
-    __tablename__ = "user"
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(256), nullable=False)

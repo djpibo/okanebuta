@@ -11,13 +11,14 @@ def test_health_check_handler(client):
 
 # Reason for Using MOCK : To prepare insert/update ops in real database.
 def test_get_todos(client, mocker):
-    mocker.patch.object(ToDoRepository, "get_todos",
+    # mock : make some sample data without manipulating database
+    mocker.patch.object(ToDoRepository, "get_todos",  # DB test
                         return_value=[
                             ToDo(id=1, contents="string", is_done=True),
                             ToDo(id=2, contents="string", is_done=True),
                             ToDo(id=3, contents="string", is_done=True)
                         ])
-    response = client.get("/todos?order=DESC")
+    response = client.get("/todos?order=DESC")  # api test
     assert response.status_code == 200
     assert response.json() == {
         "todos": [

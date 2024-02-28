@@ -48,6 +48,6 @@ class UserService:
         return random.randint(1000, 9999)
 
     @staticmethod
-    def send_email_to_user(self, email: str) -> None:
+    def send_email_to_user(email: str) -> None:
         time.sleep(10)
         print(f"Send email to {email}.")

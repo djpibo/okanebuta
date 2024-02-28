@@ -1,10 +1,13 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "mysql+pymysql://root:1234@127.0.0.1:3306/solodb"
+DATABASE_URL1 = "mysql+pymysql://root:1234@127.0.0.1:3306/testdb?charset=utf8&plugin=collectd"
+DATABASE_URL2 = "mysql+pymysql://root@127.0.0.1:16033/testdb"
+DATABASE_URL3 = "oracle+oracledb://dj:1234@localhost:8080/testdb"
+DATABASE_URL = "postgresql+psycopg2://test_user:1234@localhost:5432/testdb"
 
-engine = create_engine(DATABASE_URL, echo=True)  # echo : option printing log
-SessionFactory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_engine(DATABASE_URL, echo=True, isolation_level="AUTOCOMMIT")  # echo : option printing log
+SessionFactory = sessionmaker(autocommit=True, autoflush=False, bind=engine, expire_on_commit=True)
 
 
 def get_db():
@@ -13,3 +16,11 @@ def get_db():
         yield session
     finally:
         session.close()
+
+
+def get_db_conn():
+    conn = engine.connect()
+    try:
+        yield conn
+    finally:
+        conn.close()

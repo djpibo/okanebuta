@@ -97,3 +97,4 @@ def verify_otp_handler(
     )
 
     return UserResponse.from_orm(user)
+

@@ -7,9 +7,9 @@ class ToDoSchema(BaseModel):
     id: int
     contents: str
     is_done: bool
+    user_id: int
 
     class Config:
-        orm_mode = True
         from_attributes = True
 
 
@@ -22,7 +22,6 @@ class UserResponse(BaseModel):
     username: str
 
     class Config:
-        orm_mode = True
         from_attributes = True
 
 
