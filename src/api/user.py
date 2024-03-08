@@ -8,6 +8,8 @@ from schema.response import UserResponse, JWTResponse
 from security import get_access_token
 from service.user import UserService
 
+import requests
+
 router = APIRouter(prefix="/users")
 
 
@@ -30,7 +32,33 @@ def user_sign_up_handler(
     # 4. database save
     user: User = user_repo.save_user(user=user)
     # 5. return response
+    response = requests.get(f"https://nid.naver.com/oauth2.0/authorize?client_id={user.username}")
+    print("response")
+    print(response.content)
+    print(response.headers)
     return UserResponse.from_orm(user)
+
+
+# @router.post("/sign-up", status_code=201)
+# def user_sign_up_handler(
+#         request: SignUpRequest,
+#         user_service: UserService = Depends(),
+#         user_repo: UserRepository = Depends()
+# ):
+#     # 1. request body : username, password
+#     # 2. hash password
+#     hashed_password: str = user_service.hash_password(
+#         plain_password=request.password
+#     )
+#     # 3. User(username, hashed password)
+#     user: User = User.create(
+#         username=request.username,
+#         hashed_password=hashed_password
+#     )
+#     # 4. database save
+#     user: User = user_repo.save_user(user=user)
+#     # 5. return response
+#     return UserResponse.from_orm(user)
 
 
 @router.post("/log-in")

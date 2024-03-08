@@ -4,7 +4,7 @@ from fastapi import HTTPException, Depends, APIRouter, Body
 from pydantic import BaseModel
 
 from database.orm import ToDo, User
-from database.repository import ToDoRepository, UserRepository, NewRepository
+from database.repository import ToDoRepository, UserRepository
 from schema.request import CreateToDoRequest
 from schema.response import ToDoSchema, ToDoListSchema
 from security import get_access_token
@@ -78,11 +78,10 @@ class CreateTodoRequest(BaseModel):
 @router.post("/", status_code=201)
 def create_todo_handler(
         request: CreateToDoRequest,
-        todo_repo: ToDoRepository = Depends()
+        todo_repo: ToDoRepository = Depends(),
 ):
     todo: ToDo = ToDo.create(request=request)
     todo: ToDo = todo_repo.create_todo(todo=todo)
-    # print(todo.id)
     return ToDoSchema.from_orm(todo)
 
 

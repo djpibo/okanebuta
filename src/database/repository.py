@@ -1,11 +1,12 @@
+import json
 from typing import List
 
 from fastapi import Depends
-from sqlalchemy import select, delete, create_engine, MetaData, Table, Column, Integer, String, Boolean
+from sqlalchemy import select, delete, MetaData, Table, Column, Integer, String, Boolean
 from sqlalchemy.orm import Session
 
 from database.connection import get_db
-from database.orm import ToDo, User
+from database.orm import ToDo, User, RateSpec, RateData, RateNow
 
 
 class ToDoRepository:
@@ -18,16 +19,17 @@ class ToDoRepository:
 
     # single fetch
     def get_todo_by_todo_id(self, todo_id: int) -> ToDo | None:  # return nullable object
-        return self.session.scalar(select(ToDo).where(ToDo.id == todo_id))
+        # return self.session.scalar(select(ToDo).where(ToDo.id == todo_id))
+        return self.session.execute(select(ToDo).where(ToDo.id == todo_id)).scalar()
 
     # Like JPA Entity, don't need to use insert query
 
     def create_todo(self, todo: ToDo) -> ToDo:
-        self.session.begin()  # for autocommit = True
+        # self.session.begin()  # for autocommit = True
         self.session.add(instance=todo)
         # self.session.merge(instance=todo)
         # self.session.flush()
-        self.session.commit()  # db insert
+        self.session.commit()  # db insert, even though autocommit is True should invoke commit()
         # self.session.refresh(instance=todo)  # result reload
 
         return todo
@@ -50,9 +52,12 @@ class UserRepository:
         self.session = session
 
     def get_user_by_username(self, username: str) -> User | None:
-        return self.session.scalar(
-            select(User).where(User.username == username)
-        )
+        # try:
+        #     query = "SELECT * FROM users WHERE username = 'mine'"
+        #     return self.session.execute(query).scalar()
+        #     # return self.session.scalar(select([User]).hint("STRAIGHT_JOIN").where(User.c.username == username))
+        # except AttributeError:
+        return self.session.scalar(select(User).where(User.username == username))
 
     def save_user(self, user: User) -> User:
         self.session.add(instance=user)
@@ -61,40 +66,23 @@ class UserRepository:
         return user
 
 
-class NewRepository:
-    def __init__(self, engine):
-        self.engine = engine
-        self.metadata = MetaData(bind=self.engine)
-        self.users = Table('todos', self.metadata,
-                           Column('id', Integer, primary_key=True),
-                           Column('contents', String),
-                           Column('is_done', Boolean),
-                           Column('user_id', Integer))
-        self.metadata.create_all()
+class RateRepository:
+    def __init__(self, session: Session = Depends(get_db)):
+        self.session = session
 
-    def create_user(self, todo: ToDo):
-        query = self.users.insert().values(id=100, content=todo.contents, is_done=todo.is_done, user_id=todo.user_id)
-        with self.engine.connect() as conn:
-            conn.execute(query)
+    def get_authkey(self) -> str | None:
+        return self.session.query(RateSpec).order_by(RateSpec.last_updated.desc()).first().authkey
 
-    def get_user_by_id(self, user_id):
-        query = self.users.select().where(self.users.c.id == user_id)
-        with self.engine.connect() as conn:
-            result = conn.execute(query)
-            return result.fetchone()
+    def get_rate_data(self, cur_unit: str) -> RateNow | None:
+        return self.session.execute(select(RateNow).where(RateNow.cur_unit == cur_unit)).scalar()
 
-    def get_all_users(self):
-        query = self.users.select()
-        with self.engine.connect() as conn:
-            result = conn.execute(query)
-            return result.fetchall()
+    def save_rate(self, result: str, cur_unit: str, ttb: str, tts: str, deal_bas_r: str, cur_nm: str) -> RateData | None:
+        new_data = RateData.create(result=result, cur_unit=cur_unit, ttb=ttb, tts=tts, deal_bas_r=deal_bas_r, cur_nm=cur_nm)
+        self.session.add(instance=new_data)
+        self.session.commit()
+        return new_data
 
-    def update_user(self, user_id, content, is_done):
-        query = self.users.update().where(self.users.c.id == user_id).values(content=content, is_done=is_done)
-        with self.engine.connect() as conn:
-            conn.execute(query)
-
-    def delete_user(self, user_id):
-        query = self.users.delete().where(self.users.c.id == user_id)
-        with self.engine.connect() as conn:
-            conn.execute(query)
+    async def save_rate_now(self, cur_unit: str, ttb: str, tts: str, deal_bas_r: str, cur_nm: str):
+        cur_data = RateNow.create(cur_unit=cur_unit, ttb=ttb, tts=tts, deal_bas_r=deal_bas_r, cur_nm=cur_nm)
+        self.session.merge(instance=cur_data)
+        self.session.commit()

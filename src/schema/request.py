@@ -1,3 +1,6 @@
+from datetime import datetime
+from decimal import Decimal
+
 from pydantic import BaseModel
 
 
@@ -24,3 +27,8 @@ class CreateOTPRequest(BaseModel):
 class VerifyOTPRequest(BaseModel):
     email: str
     otp: int
+
+
+class ExchangeMoneyRequest(BaseModel):
+    money: Decimal
+    cur_unit: str

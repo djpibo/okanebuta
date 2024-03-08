@@ -1,5 +1,5 @@
 from sqlalchemy.orm import declarative_base, relationship
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, DateTime, DECIMAL
 
 from schema.request import CreateToDoRequest
 
@@ -52,4 +52,57 @@ class User(Base):
         return cls(
             username=username,
             password=hashed_password
+        )
+
+
+class RateSpec(Base):
+    __tablename__ = "exchange_rates_spec"
+
+    id = Column(Integer, primary_key=True, index=True)
+    authkey = Column(String(256), nullable=False)
+    last_updated = Column(DateTime, nullable=False)
+
+
+class RateData(Base):
+    __tablename__ = "exchange_rates_data"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    result = Column(Integer)
+    cur_unit = Column(String(20))
+    ttb = Column(DECIMAL(10, 2))  # 전신환(송금) 받으실 때
+    tts = Column(DECIMAL(10, 2))  # 전신환(송금) 보내실 때
+    deal_bas_r = Column(DECIMAL(10, 2))  # 매매 기준율
+    cur_nm = Column(String(50))
+
+    @classmethod
+    def create(cls, result, cur_unit, ttb, tts, deal_bas_r, cur_nm
+               ) -> "RateData":
+        return cls(
+            result=result,
+            cur_unit=cur_unit,
+            ttb=ttb,
+            tts=tts,
+            deal_bas_r=deal_bas_r,
+            cur_nm=cur_nm
+        )
+
+
+class RateNow(Base):
+    __tablename__ = "exchange_rates_now"
+
+    cur_unit = Column(String(20), primary_key=True)
+    ttb = Column(DECIMAL(10, 2))  # 전신환(송금) 받으실 때
+    tts = Column(DECIMAL(10, 2))  # 전신환(송금) 보내실 때
+    deal_bas_r = Column(DECIMAL(10, 2))  # 매매 기준율
+    cur_nm = Column(String(50))
+
+    @classmethod
+    def create(cls, cur_unit, ttb, tts, deal_bas_r, cur_nm
+               ) -> "RateData":
+        return cls(
+            cur_unit=cur_unit,
+            ttb=ttb,
+            tts=tts,
+            deal_bas_r=deal_bas_r,
+            cur_nm=cur_nm
         )
