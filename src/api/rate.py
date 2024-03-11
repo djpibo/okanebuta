@@ -1,24 +1,26 @@
 import json
 from datetime import datetime
+from types import SimpleNamespace
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.util import asyncio
 
-from database.orm import RateNow
+from database.orm import RateNow, RateData
 from database.repository import RateRepository
 from redis_cache import redis_client
 
 import requests
 
 from schema.request import ExchangeMoneyRequest
-from schema.response import RateDataSchema, ExchangeResponse
+from schema.response import ExchangeResponse
+from service.rate import RateService
 
 router = APIRouter(prefix="/rates")
 
 
 @router.get("/peek", status_code=200)
 def rates_peek_handler(
-        rate_repo: RateRepository = Depends()
+        rate_repo: RateRepository = Depends(),
+        rate_srvc: RateService = Depends()
 ):
     authkey = redis_client.get("authkey")
     if not authkey:
@@ -33,12 +35,11 @@ def rates_peek_handler(
         if not data:
             raise HTTPException(status_code=500, detail="No Rate Data")  # 데이터 없음
         for item in data:
-            print(item)
             if item['cur_unit'] == 'JPY(100)':
                 data = item
-                asyncio.run(rate_repo.save_rate_now(data['cur_unit'], data['ttb'], data['tts'], data['deal_bas_r'], data['cur_nm']))
-                data = rate_repo.save_rate(data['result'], data['cur_unit'], data['ttb'], data['tts'],
-                                           data['deal_bas_r'], data['cur_nm'])
+                print(data)
+                # rate_srvc.save_rate(data)
+                x = json.loads(data)
         # return RateDataSchema.from_orm(data)
     except requests.RequestException as e:
         raise HTTPException(status_code=500, detail="External API request failed")  # 예외 처리
@@ -50,7 +51,7 @@ def rates_exchange_handler(
         rate_repo: RateRepository = Depends()
 ):
     rateNow: RateNow = rate_repo.get_rate_data(request.cur_unit)
-    return ExchangeResponse(
+    resp: ExchangeResponse(
         cur_nm=rateNow.cur_nm,
         cur_unit=rateNow.cur_unit,
         pay_money=format(request.money, ','),

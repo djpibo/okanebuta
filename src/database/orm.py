@@ -1,5 +1,5 @@
 from sqlalchemy.orm import declarative_base, relationship
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, DateTime, DECIMAL
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, DateTime, DECIMAL, Time, Date
 
 from schema.request import CreateToDoRequest
 
@@ -106,3 +106,37 @@ class RateNow(Base):
             deal_bas_r=deal_bas_r,
             cur_nm=cur_nm
         )
+
+
+class Transaction(Base):
+    __tablename__ = 'transaction'
+
+    transaction_id = Column(Integer, primary_key=True)
+    transaction_date = Column(Date, nullable=False)
+    transaction_time = Column(Time, nullable=False)
+    user_id = Column(Integer, nullable=False)
+    currency_unit = Column(String(3), nullable=False)
+    amount = Column(DECIMAL(10, 2), nullable=False)
+    exchange_rate = Column(DECIMAL(10, 4), nullable=False)
+    requested_amount = Column(DECIMAL(10, 2), nullable=False)
+    transaction_type_code = Column(String(10), nullable=False)
+    transaction_status_code = Column(String(10), nullable=False)
+    is_cancelled = Column(String(1), nullable=True, default='Y')
+    cancel_transaction_id = Column(Integer, nullable=True)
+
+    @classmethod
+    def create(cls, transaction_id, transaction_date, transaction_time, user_id, currency_unit,
+               amount, exchange_rate, requested_amount, transaction_type_code, transaction_status_code,
+               is_cancelled, cancel_transaction_id=None):
+        cls.transaction_id = transaction_id
+        cls.transaction_date = transaction_date
+        cls.transaction_time = transaction_time
+        cls.user_id = user_id
+        cls.currency_unit = currency_unit
+        cls.amount = amount
+        cls.exchange_rate = exchange_rate
+        cls.requested_amount = requested_amount
+        cls.transaction_type_code = transaction_type_code
+        cls.transaction_status_code = transaction_status_code
+        cls.is_cancelled = is_cancelled
+        cls.cancel_transaction_id = cancel_transaction_id

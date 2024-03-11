@@ -76,13 +76,16 @@ class RateRepository:
     def get_rate_data(self, cur_unit: str) -> RateNow | None:
         return self.session.execute(select(RateNow).where(RateNow.cur_unit == cur_unit)).scalar()
 
-    def save_rate(self, result: str, cur_unit: str, ttb: str, tts: str, deal_bas_r: str, cur_nm: str) -> RateData | None:
-        new_data = RateData.create(result=result, cur_unit=cur_unit, ttb=ttb, tts=tts, deal_bas_r=deal_bas_r, cur_nm=cur_nm)
+    def save_rate_data(self, new_data: RateData) -> RateData | None:
         self.session.add(instance=new_data)
         self.session.commit()
         return new_data
 
-    async def save_rate_now(self, cur_unit: str, ttb: str, tts: str, deal_bas_r: str, cur_nm: str):
+    def save_rate_now(self, rate_now: RateNow):
+        self.session.merge(instance=rate_now)
+        self.session.commit()
+
+    def save_transactions(self, cur_unit: str, ttb: str, tts: str, deal_bas_r: str, cur_nm: str):
         cur_data = RateNow.create(cur_unit=cur_unit, ttb=ttb, tts=tts, deal_bas_r=deal_bas_r, cur_nm=cur_nm)
         self.session.merge(instance=cur_data)
         self.session.commit()
